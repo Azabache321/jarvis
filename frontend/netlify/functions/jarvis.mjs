@@ -48,7 +48,7 @@ export default async function handler(request) {
         const code = data.error?.code;
         const message = response.status === 401 ? 'OpenAI rejected the saved API key.' :
           code === 'insufficient_quota' ? 'OpenAI API quota is exhausted. Add API billing credits to your OpenAI project.' :
-          response.status === 429 ? 'OpenAI rate limit reached. Please retry shortly.' :
+          response.status === 429 ? String(data.error?.message || 'OpenAI rate limit reached. Please retry shortly.').replaceAll(key, '[redacted]') :
           'OpenAI could not complete this request (' + response.status + '). Try another model.';
         return error(message, response.status);
       }
@@ -60,4 +60,3 @@ export default async function handler(request) {
   }
 }
 export const config = { path: ['/v1/*', '/api/*', '/health'] };
-
