@@ -29,6 +29,44 @@ export default async function handler(request) {
       cachedAt = Date.now();
       return cachedModels;
     }
+
+    const voiceError = async (response) => {
+      const data = await response.json().catch(() => ({}));
+      const detail = String(data.error?.message || 'OpenAI voice request failed (' + response.status + ').').replaceAll(key, '[redacted]');
+      return json({ detail }, response.status);
+    };
+    if (request.method === 'GET' && path === '/v1/speech/health') return json({ available: true, backend: 'OpenAI gpt-transcribe' });
+    if (request.method === 'GET' && path === '/v1/speech/tts/health') return json({ available: true, backend: 'OpenAI AI-generated voice', voice_id: 'onyx', speed: 1 });
+    if (request.method === 'POST' && path === '/v1/speech/transcribe') {
+      if (Number(request.headers.get('content-length')) > 4000000) return json({ detail: 'Recording too large. Keep recordings under one minute.' }, 413);
+      let form; try { form = await request.formData(); } catch { return json({detail:'Invalid audio upload.'},400); }
+      const file = form.get('file');
+      if (!file || typeof file.arrayBuffer !== 'function' || file.size < 1 || file.size > 4000000) return json({detail:'Upload an audio recording smaller than 4 MB.'},400);
+      const upload = new FormData();
+      upload.append('file', file, file.name || 'recording.webm');
+      upload.append('model', 'gpt-transcribe');
+      upload.append('response_format', 'json');
+      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method:'POST', headers:{Authorization:'Bearer '+key}, body:upload, signal:AbortSignal.timeout(55000)
+      });
+      if (!response.ok) return voiceError(response);
+      const result = await response.json();
+      return json({ text:result.text || '', language:result.language || null, confidence:null, duration_seconds:result.duration || 0 });
+    }
+    if (request.method === 'POST' && path === '/v1/speech/synthesize') {
+      const raw=await request.text();
+      if(raw.length > 20000) return json({detail:'Reply is too long for voice playback.'},413);
+      let body; try {body=JSON.parse(raw);} catch {return json({detail:'Invalid speech request.'},400);}
+      if(typeof body.text !== 'string' || !body.text.trim() || body.text.length > 4096) return json({detail:'Voice playback supports 1–4096 characters per reply.'},400);
+      const response = await fetch('https://api.openai.com/v1/audio/speech', {
+        method:'POST',headers:upstreamHeaders,
+        body:JSON.stringify({model:'gpt-4o-mini-tts',input:body.text,voice:'onyx',response_format:'mp3',speed:1}),
+        signal:AbortSignal.timeout(55000)
+      });
+      if(!response.ok) return voiceError(response);
+      return new Response(response.body,{headers:{'Content-Type':'audio/mpeg','Cache-Control':'no-store'}});
+    }
+
     if (request.method === 'GET' && path === '/v1/models') return json({ object: 'list', data: await models() });
     if (request.method === 'GET' && path === '/v1/info') return json({ engine: 'OpenAI via Netlify', model: 'Select an OpenAI model', agent: null });
     if (request.method === 'POST' && path === '/v1/chat/completions') {

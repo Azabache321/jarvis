@@ -784,8 +784,11 @@ export function SettingsPage() {
 
           {/* Speech */}
           <Section title="Speech">
-            <SettingRow label="Speech-to-Text" description="Enable microphone input for voice dictation">
+            <SettingRow label="Speech-to-Text" description="Record your voice for OpenAI transcription; click again to stop">
               <button
+                aria-label="Speech-to-Text"
+                role="switch"
+                aria-checked={settings.speechEnabled}
                 onClick={() => { updateSettings({ speechEnabled: !settings.speechEnabled }); showSaved(); }}
                 className="relative w-11 h-6 rounded-full transition-colors cursor-pointer"
                 style={{
@@ -801,8 +804,11 @@ export function SettingsPage() {
                 />
               </button>
             </SettingRow>
-            <SettingRow label="Text-to-Speech" description="Show a read-aloud button on assistant replies">
+            <SettingRow label="Text-to-Speech" description="Read replies aloud with an AI-generated voice">
               <button
+                aria-label="Text-to-Speech"
+                role="switch"
+                aria-checked={settings.voiceOutputEnabled}
                 onClick={() => { updateSettings({ voiceOutputEnabled: !settings.voiceOutputEnabled }); showSaved(); }}
                 className="relative w-11 h-6 rounded-full transition-colors cursor-pointer"
                 style={{
@@ -820,6 +826,9 @@ export function SettingsPage() {
             </SettingRow>
             <SettingRow label="Speak replies automatically" description="Read every assistant reply aloud as soon as it finishes">
               <button
+                aria-label="Speak replies automatically"
+                role="switch"
+                aria-checked={settings.voiceAutoplay}
                 onClick={() => { updateSettings({ voiceAutoplay: !settings.voiceAutoplay }); showSaved(); }}
                 disabled={!settings.voiceOutputEnabled}
                 className="relative w-11 h-6 rounded-full transition-colors cursor-pointer"
