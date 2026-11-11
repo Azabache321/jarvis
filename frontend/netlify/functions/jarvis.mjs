@@ -78,7 +78,7 @@ export default async function handler(request) {
           body.messages.some(m => !['user','assistant','system'].includes(m.role) || typeof m.content !== 'string')) return error('Invalid chat messages.', 400);
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST', headers: upstreamHeaders,
-        body: JSON.stringify({ model: body.model, messages: body.messages.map(({role,content}) => ({role,content})), stream: true, stream_options: { include_usage: true }, max_completion_tokens: Math.min(Math.max(Number(body.max_tokens) || 2048, 16), 4096) }),
+        body: JSON.stringify({ model: body.model, messages: [{role:'system',content:'You are Jarvis, Bobby’s personal AI assistant. Introduce yourself as Jarvis when asked. Be calm, capable, direct, and concise. For voice-friendly replies, use natural sentences and avoid unnecessary formatting. Respond in the language the user uses. Never claim to have performed actions or used tools that are not available.'}, ...body.messages.map(({role,content}) => ({role,content}))], stream: true, stream_options: { include_usage: true }, max_completion_tokens: Math.min(Math.max(Number(body.max_tokens) || 2048, 16), 4096) }),
         signal: AbortSignal.timeout(55000),
       });
       if (!response.ok) {

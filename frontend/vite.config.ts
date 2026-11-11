@@ -24,6 +24,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      selfDestroying: process.env.VITE_HOSTED_CHAT === 'true',
       manifest: {
         name: 'OpenJarvis',
         short_name: 'Jarvis',

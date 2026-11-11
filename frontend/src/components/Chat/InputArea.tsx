@@ -12,6 +12,7 @@ import {
 } from '../../lib/chat-telemetry';
 import { MicButton } from './MicButton';
 import { useSpeech } from '../../hooks/useSpeech';
+import { useTtsStore } from '../../lib/tts';
 import type {
   ChatMessage,
   MessageTelemetry,
@@ -81,6 +82,8 @@ function useResearchCorpusSync(enabled: boolean): {
 
 export function InputArea() {
   const [input, setInput] = useState('');
+  const pendingVoiceSend = useRef(false);
+  const voiceConversation = useAppStore((s) => s.settings.voiceAutoplay && s.settings.voiceOutputEnabled);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -144,16 +147,19 @@ export function InputArea() {
     if (speechState === 'recording') {
       try {
         const text = await stopRecording();
-        if (text) {
+        if (text.trim()) {
+          pendingVoiceSend.current = !!import.meta.env.VITE_HOSTED_CHAT && voiceConversation;
           setInput((prev) => (prev ? prev + ' ' + text : text));
         }
       } catch {
         // Error is captured in useSpeech
       }
     } else {
+      if (!selectedModel) { toast.error('Select a model first.'); return; }
+      useTtsStore.getState().stop();
       await startRecording();
     }
-  }, [speechState, startRecording, stopRecording]);
+  }, [speechState, startRecording, stopRecording, voiceConversation, selectedModel]);
 
   useEffect(() => {
     const el = textareaRef.current;
@@ -554,6 +560,12 @@ export function InputArea() {
     maxTokens,
   ]);
 
+  useEffect(() => {
+    if (!pendingVoiceSend.current || !input.trim() || streamState.isStreaming || modelLoading || !selectedModel) return;
+    pendingVoiceSend.current = false;
+    void sendMessage();
+  }, [input, streamState.isStreaming, modelLoading, selectedModel, sendMessage]);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -564,6 +576,7 @@ export function InputArea() {
   return (
     <div className="px-4 pb-4 pt-2" style={{ maxWidth: 'var(--chat-max-width)', margin: '0 auto', width: '100%' }}>
       <div className="mb-2 flex flex-col gap-1">
+        {import.meta.env.VITE_HOSTED_CHAT && voiceConversation && <p className="text-xs">Voice conversation: click the mic, speak, then click again to send. Jarvis replies in an AI-generated voice.</p>}
         <div className="flex items-center gap-2">
           <button
             type="button"

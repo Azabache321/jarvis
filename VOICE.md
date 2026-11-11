@@ -1,7 +1,7 @@
-# Personal Jarvis voice
+# Jarvis voice
 
-Dictation uses the authenticated /v1/speech/transcribe route and OpenAI gpt-transcribe. Spoken replies use /v1/speech/synthesize with the AI-generated Onyx voice through gpt-4o-mini-tts. Both use the production server-side OPENAI_API_KEY and require the same personal Jarvis access token as chat.
+Enable Speech-to-Text, Text-to-Speech, and Speak replies automatically in Settings. Select a chat model. Click the microphone, speak, and click again to stop. With automatic speech enabled, the transcript is sent automatically and Jarvis answers aloud using OpenAI's AI-generated Onyx voice. Without automatic speech, review and send the transcript manually. Microphone permission is required. This is push-to-talk, not continuous listening.
 
-Enable Speech-to-Text and Text-to-Speech in Settings → Speech. Click the mic to record, click again to stop, review the transcript, then send. Microphone permission is required. Read-aloud appears on assistant messages; automatic playback is optional. Recordings are forwarded to OpenAI and not stored by this function. Uploads are capped at 4 MB and speech output at 4096 characters.
+OpenAI credentials remain server-side. All speech routes require the private application bearer token. Transcription uses gpt-transcribe; synthesis uses gpt-4o-mini-tts. The latter is scheduled to shut down January 6, 2027 and requires migration to Realtime before that date.
 
-Maintenance: OpenAI currently schedules the Speech API models to shut down January 6, 2027. This existing read-aloud interface will need migration to the Realtime API before then. See https://developers.openai.com/api/docs/guides/text-to-speech.
+The hosted build unregisters legacy offline service workers to prevent stale UI assets.
