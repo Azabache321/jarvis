@@ -6,6 +6,11 @@
 [build.environment]
   NODE_VERSION = "22"
   NPM_VERSION = "11.19.0"
+  VITE_HOSTED_CHAT = "true"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
 
 [[redirects]]
   from = "/*"

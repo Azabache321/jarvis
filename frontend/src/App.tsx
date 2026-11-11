@@ -129,7 +129,7 @@ export default function App() {
 
   // Wait for desktop setup before fetching identity or marking the dialog seen.
   useEffect(() => offerAnalyticsChoice({
-    ready: setupDone,
+    ready: setupDone && !import.meta.env.VITE_HOSTED_CHAT,
     sharingModalSeen: optInModalSeen,
     open: () => setOptInModalOpen(true),
     markSharingModalSeen: markOptInModalSeen,
@@ -204,7 +204,7 @@ export default function App() {
       </Routes>
       <Toaster position="bottom-right" />
       {commandPaletteOpen && <CommandPalette />}
-      {optInModalOpen && (
+      {optInModalOpen && !import.meta.env.VITE_HOSTED_CHAT && (
         <OptInModal onClose={() => setOptInModalOpen(false)} />
       )}
     </>

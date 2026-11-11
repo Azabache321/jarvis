@@ -22,7 +22,8 @@ export async function* streamChat(
   });
 
   if (!response.ok) {
-    throw new Error(`Chat request failed: ${response.status}`);
+    const details = await response.json().catch(() => ({}));
+    throw new Error(details.error?.message || `Chat request failed: ${response.status}`);
   }
 
   const reader = response.body!.getReader();

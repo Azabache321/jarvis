@@ -192,7 +192,7 @@ export function ChatArea() {
               {getGreeting()}
             </h2>
             <p className="text-sm text-center max-w-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>
-              Ask anything. Your AI runs locally — private, fast, and always available.
+              {import.meta.env.VITE_HOSTED_CHAT ? 'Your personal OpenAI chat. Select a model to begin. Agents and integrations require the full backend.' : 'Ask anything. Your AI runs locally — private, fast, and always available.'}
             </p>
 
             {/* Quick action hints */}
